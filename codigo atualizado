@@ -1,0 +1,150 @@
+import tkinter as tk
+from tkinter import messagebox
+import json
+import os
+
+# ---------------- FUNÇÕES AUXILIARES ---------------- #
+def carregar_professores():
+    if os.path.exists("professores.json"):
+        with open("professores.json", "r") as f:
+            return json.load(f)
+    return {}
+
+def salvar_professores(dados):
+    with open("professores.json", "w") as f:
+        json.dump(dados, f, indent=4)
+
+# ---------------- TELA DE CADASTRO DO PROFESSOR ---------------- #
+def tela_cadastro_professor():
+    cadastro = tk.Toplevel()
+    cadastro.title("Cadastro de Professor")
+    cadastro.geometry("400x500")
+    cadastro.configure(bg="white")
+    cadastro.resizable(False, False)
+
+    frame = tk.Frame(cadastro, bg="white")
+    frame.place(relx=0.5, rely=0.5, anchor="center")
+
+    tk.Label(frame, text="Cadastro de Professor", font=("Arial", 18, "bold"), bg="white", fg="green").pack(pady=20)
+
+    tk.Label(frame, text="E-mail:", bg="white").pack(anchor="w")
+    entry_email = tk.Entry(frame, width=35)
+    entry_email.pack(pady=5)
+
+    tk.Label(frame, text="Senha:", bg="white").pack(anchor="w")
+    entry_senha = tk.Entry(frame, width=35, show="*")
+    entry_senha.pack(pady=5)
+
+    tk.Label(frame, text="Confirmar senha:", bg="white").pack(anchor="w")
+    entry_confirmar = tk.Entry(frame, width=35, show="*")
+    entry_confirmar.pack(pady=5)
+
+    def registrar():
+        email = entry_email.get().strip()
+        senha = entry_senha.get().strip()
+        confirmar = entry_confirmar.get().strip()
+
+        if not email or not senha:
+            messagebox.showwarning("Atenção", "Preencha todos os campos!")
+            return
+        if senha != confirmar:
+            messagebox.showerror("Erro", "As senhas não coincidem!")
+            return
+
+        professores = carregar_professores()
+
+        if email in professores:
+            messagebox.showerror("Erro", "Usuário já cadastrado!")
+            return
+
+        professores[email] = senha
+        salvar_professores(professores)
+        messagebox.showinfo("Sucesso", "Cadastro realizado com sucesso!")
+        cadastro.destroy()
+
+    tk.Button(frame, text="Cadastrar", bg="green", fg="white", width=20, command=registrar).pack(pady=15)
+    tk.Button(frame, text="Voltar", bg="white", fg="green", width=20, command=cadastro.destroy).pack(pady=5)
+
+# ---------------- TELA DE LOGIN DO PROFESSOR ---------------- #
+def tela_login_professor():
+    login = tk.Toplevel()
+    login.title("Login do Professor")
+    login.geometry("400x500")
+    login.configure(bg="white")
+    login.resizable(False, False)
+
+    frame = tk.Frame(login, bg="white")
+    frame.place(relx=0.5, rely=0.5, anchor="center")
+
+    tk.Label(frame, text="Login do Professor", font=("Arial", 18, "bold"), bg="white", fg="green").pack(pady=20)
+
+    tk.Label(frame, text="E-mail:", bg="white").pack(anchor="w")
+    entry_email = tk.Entry(frame, width=35)
+    entry_email.pack(pady=5)
+
+    tk.Label(frame, text="Senha:", bg="white").pack(anchor="w")
+    entry_senha = tk.Entry(frame, width=35, show="*")
+    entry_senha.pack(pady=5)
+
+    def login_action():
+        email = entry_email.get().strip()
+        senha = entry_senha.get().strip()
+
+        professores = carregar_professores()
+
+        if professores.get(email) == senha:
+            messagebox.showinfo("Sucesso", "Login realizado com sucesso!")
+            login.destroy()
+            abrir_tela_principal(email)
+        else:
+            messagebox.showerror("Erro", "Usuário ou senha incorretos!")
+
+    tk.Button(frame, text="Entrar", bg="green", fg="white", width=20, command=login_action).pack(pady=15)
+    tk.Button(frame, text="Cadastrar", bg="white", fg="green", width=20, command=tela_cadastro_professor).pack(pady=5)
+    tk.Button(frame, text="Voltar", bg="white", fg="red", width=20, command=login.destroy).pack(pady=5)
+
+# ---------------- TELA PRINCIPAL DO PROFESSOR ---------------- #
+def abrir_tela_principal(email):
+    janela = tk.Tk()
+    janela.title("Área do Professor")
+    janela.geometry("400x500")
+    janela.configure(bg="white")
+    janela.resizable(False, False)
+
+    frame = tk.Frame(janela, bg="white")
+    frame.place(relx=0.5, rely=0.5, anchor="center")
+
+    tk.Label(frame, text=f"Bem-vindo(a), {email}", bg="white", fg="green", font=("Arial", 14, "bold")).pack(pady=15)
+    tk.Label(frame, text="Menu Principal", bg="white", fg="black", font=("Arial", 18, "bold")).pack(pady=10)
+
+    botoes = [
+        ("Meu Cadastro", lambda: messagebox.showinfo("Cadastro", "Abrindo cadastro...")),
+        ("Gerenciamento de Notas", lambda: messagebox.showinfo("Notas", "Abrindo notas...")),
+        ("Gerenciamento de Faltas", lambda: messagebox.showinfo("Faltas", "Abrindo faltas...")),
+        ("Alteração de Cronograma", lambda: messagebox.showinfo("Cronograma", "Abrindo cronograma...")),
+        ("Sair", janela.destroy)
+    ]
+
+    for texto, comando in botoes:
+        tk.Button(frame, text=texto, bg="green", fg="white", width=25, height=2, command=comando).pack(pady=8)
+
+    janela.mainloop()
+
+# ---------------- TELA INICIAL ---------------- #
+janela_inicio = tk.Tk()
+janela_inicio.title("Sistema Acadêmico")
+janela_inicio.geometry("400x500")
+janela_inicio.configure(bg="white")
+janela_inicio.resizable(False, False)
+
+frame_inicio = tk.Frame(janela_inicio, bg="white")
+frame_inicio.place(relx=0.5, rely=0.5, anchor="center")
+
+tk.Label(frame_inicio, text="Bem-vindo ao Sistema Acadêmico", bg="white", fg="green", font=("Arial", 16, "bold")).pack(pady=20)
+tk.Label(frame_inicio, text="Escolha seu perfil:", bg="white", fg="black", font=("Arial", 12)).pack(pady=10)
+
+tk.Button(frame_inicio, text="Sou Professor", bg="green", fg="white", width=20, height=2, command=tela_login_professor).pack(pady=10)
+tk.Button(frame_inicio, text="Sou Aluno", bg="white", fg="green", width=20, height=2,
+          command=lambda: messagebox.showinfo("Área do Aluno", "Área do aluno em desenvolvimento.")).pack(pady=10)
+
+janela_inicio.mainloop()
